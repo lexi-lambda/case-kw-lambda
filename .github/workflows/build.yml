@@ -1,0 +1,38 @@
+name: build
+on: [push, pull_request]
+defaults:
+  run:
+    working-directory: repo
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        racket-version: ['7.4', '7.9', '8.0', '8.8', stable]
+    steps:
+    - uses: actions/checkout@v2
+      with: { path: repo }
+    - uses: Bogdanp/setup-racket@v1.5
+      with:
+        version: ${{ matrix.racket-version }}
+        dest: '$GITHUB_WORKSPACE/racket'
+        sudo: never
+    - name: install
+      run: raco pkg install --installation --auto --link case-kw-lambda{,-doc,-lib,-test}
+    - name: test
+      run: raco test -ep case-kw-lambda{,-doc,-lib,-test}
+
+    - name: deploy_docs
+      if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' && matrix.racket-version == 'stable' }}
+      run: |
+        set -e
+        scribble +m --redirect https://docs.racket-lang.org/local-redirect/index.html \
+          --dest docs --dest-name index case-kw-lambda-doc/scribblings/case-kw-lambda.scrbl
+        cd docs
+        git init -b gh-pages
+        git config user.name 'GitHub Actions'
+        git config user.email 'lexi.lambda@gmail.com'
+        git add .
+        git commit -m 'Deploy to GitHub Pages'
+        git push --force 'https://lexi-lambda:${{ github.token }}@github.com/${{ github.repository }}' gh-pages
