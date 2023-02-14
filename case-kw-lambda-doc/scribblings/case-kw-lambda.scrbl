@@ -53,7 +53,7 @@ Note that, unlike @racket[case-lambda], a @racket[case-kw-lambda] clause support
                    (-> dom ... dom-expr ellipsis dom ... range)
                    (->* [dom ...] optional-doms rest range)]
           [dom dom-expr
-               (code-line keyword dom-expr)]
+               (code:line keyword dom-expr)]
           [optional-doms (code:line)
                          (code:line [dom ...])]
           [rest (code:line)
