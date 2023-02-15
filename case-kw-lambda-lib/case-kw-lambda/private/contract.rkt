@@ -2,9 +2,11 @@
 
 ;; This module implements `case-kw->`, which is like `case->` but for
 ;; `case-kw-lambda` procedures. Currently, the implementation is not
-;; particularly efficient, but it gets the job done. (A cleverer
-;; implementation could build a specialized projection using `case-kw->`
-;; itself, but this implementation just uses `make-keyword-procedure`.)
+;; particularly efficient, but it gets the job done (and it’s cheap
+;; on code size). A cleverer implementation could build a specialized
+;; projection using `case-kw-lambda` itself, but it’s hard to know to
+;; what extent that would be a win without real programs to benchmark,
+;; so this implementation just uses `make-keyword-procedure`.
 
 (require (for-syntax racket/base
                      racket/list
@@ -95,8 +97,8 @@
                                        opt-kw-ctcs
                                        rest-ctc
                                        range-ctcs)
-  (if (and (null? opt-pos-ctcs)
-           (null? opt-kws)
+  (if (and (empty? opt-pos-ctcs)
+           (empty? opt-kws)
            (not rest-ctc))
       (build-case-kw-arrow-contract req-pos-ctcs
                                     req-kws
@@ -284,7 +286,7 @@
            (build-contract-name
             '->*
             (build-contract-name (append req-pos-ctcs (append-map list req-kws req-kw-ctcs)))
-            (append (if (and (empty? opt-pos-ctcs) (hash-empty? opt-kws))
+            (append (if (and (empty? opt-pos-ctcs) (empty? opt-kws))
                         '()
                         (list (build-contract-name
                                (append opt-pos-ctcs (append-map list opt-kws opt-kw-ctcs)))))
@@ -488,7 +490,7 @@
       #:attr struct-e
       #'(build-case-kw-arrow-contract
          (list doms.pos-ctc ...)
-         (list 'doms.kw ...)
+         '(doms.kw ...)
          (list doms.kw-ctc ...)
          {~? rest.ctc #f}
          {~? (list range.ctc ...) #f})
@@ -512,9 +514,9 @@
       #'(build-case-kw-arrow*-contract
          (list req-doms.pos-ctc ...)
          (list {~? {~@ opt-doms.pos-ctc ...}})
-         (list 'req-doms.kw ...)
+         '(req-doms.kw ...)
          (list req-doms.kw-ctc ...)
-         (list {~? {~@ 'opt-doms.kw ...}})
+         {~? '(opt-doms.kw ...) '()}
          (list {~? {~@ opt-doms.kw-ctc ...}})
          {~? rest.ctc #f}
          {~? (list range.ctc ...) #f})

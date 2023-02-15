@@ -42,3 +42,10 @@
     (check-pred blame? b)
     (check-equal? (blame-positive b) 'neg)
     (check-equal? (blame-context b) '("the 1st argument of" "the 2nd case of"))))
+
+(check-equal? (contract-name (case-kw->
+                              (->* [] [real? real?] any/c)
+                              (->* [] [#:h real? #:w real?] any/c)))
+              '(case-kw->
+                (->* [] [real? real?] any/c)
+                (->* [] [#:h real? #:w real?] any/c)))
